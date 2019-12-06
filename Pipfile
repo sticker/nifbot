@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+slackbot = "==0.5.4"
+"boto3" = "==1.10.16"
+pandas = "*"
+
+[dev-packages]
+pytest = "*"
+
+[requires]
+python_version = "3.7"
+
+[scripts]
+start = "python run.py"
