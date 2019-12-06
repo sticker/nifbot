@@ -7,6 +7,9 @@ from lib.nifbot.company_user import CompanyUser
 import logging
 
 
+company_user = CompanyUser()
+
+
 @respond_to('help')
 def help(message: Message):
     logging.info(message.body)
@@ -17,11 +20,12 @@ def help(message: Message):
 @respond_to('(.*)')
 def mention_handler(message: Message, mention_str):
     logging.info(message.body)
-    words = mention_str.strip().replace("　", " ").split()
+    words = mention_str.strip().replace("　", " ").replace(",", " ").split()
     logging.info(words)
 
     if len(words) == 0:
         message.reply("何かしゃべってくださいよ！")
         return
 
-    CompanyUser().search(message, words)
+    message.reply("社員マスタを検索します！")
+    company_user.search(message, words)
