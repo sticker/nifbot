@@ -1,7 +1,9 @@
-from lib import get_logger
+from lib import get_logger, app_home
 from logging import DEBUG
 from boto3 import Session
+from datetime import datetime
 import os
+import pandas as pd
 
 
 class S3(object):
@@ -25,3 +27,24 @@ class S3(object):
 
     def download_company_master(self, key: str, path_local: str):
         self.download(self.S3_BUCKET_COMPANY_MASTER, key, path_local)
+
+    def load_company_master(self, filename):
+        # マスタファイルのローカル保存名（フルパス）
+        local_path = os.path.join(app_home, filename)
+
+        if not os.path.exists(local_path):
+            # ローカルにファイルがなければS3からダウンロード
+            self.download_company_master(filename, local_path)
+        else:
+            # ローカルにファイルが有れば、更新日時を取得
+            last_download_time = datetime.fromtimestamp(os.path.getmtime(local_path))
+            self.logger.debug(last_download_time)
+            # 更新日時が今日の0時以前であればS3からダウンロード
+            today_midnight = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+            self.logger.debug(today_midnight)
+
+            if last_download_time < today_midnight:
+                self.download_company_master(filename, local_path)
+
+        df = pd.read_csv(local_path)
+        return df
