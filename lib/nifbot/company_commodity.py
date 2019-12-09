@@ -11,7 +11,7 @@ class CompanyCommodity:
 
     def search(self, message, words):
         self.logger.info("商品マスタ検索を開始")
-        df = self.s3.load_company_master(filename="company_commodity.csv")
+        df = self.s3.load_company_master(filename="format/commodity/commodity-code.csv")
 
         # 7桁数字のみのリストに変換
         words = [s for s in words if re.match('[0-9]{7}', s)]

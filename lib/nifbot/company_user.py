@@ -10,7 +10,7 @@ class CompanyUser:
 
     def search(self, message, words):
         self.logger.info("社員マスタ検索を開始")
-        df = self.s3.load_company_master(filename="company_user.csv")
+        df = self.s3.load_company_master(filename="format/user/nifty_general_user2.csv")
 
         # 検索結果のndarrayを入れる変数
         hit = None
