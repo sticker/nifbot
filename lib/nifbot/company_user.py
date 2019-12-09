@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from lib import get_logger
 from lib.aws.s3 import S3
 
@@ -10,12 +11,17 @@ class CompanyUser:
 
     def search(self, message, words):
         self.logger.info("社員マスタ検索を開始")
-        df = self.s3.load_company_master(filename="format/user/nifty_general_user2.csv")
+        df_user = self.s3.load_company_master(filename="format/user/nifty_general_user2.csv")
+        df_group = self.s3.load_company_master(filename="format/group/nifty_general_org.csv")
+        df_position = self.s3.load_company_master(filename="format/position/nifty_general_title.csv")
+        df_user_group = pd.merge(df_user, df_group, left_on='department', right_on='group_id', how='left')
+        df = pd.merge(df_user_group, df_position, left_on='position', right_on='position_id', how='left')
+        self.logger.debug(df)
 
         # 検索結果のndarrayを入れる変数
         hit = None
         # 取得対象カラム
-        get_columns = ['uid', 'full_name_kanji', 'mail', 'telephone_number']
+        get_columns = ['uid', 'full_name_kanji', 'mail', 'telephone_number', 'group_name', 'position_name']
         # 検索対象カラム
         search_columns = get_columns
 
