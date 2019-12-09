@@ -286,3 +286,26 @@ class Dynamodb(object):
         except Exception as err:
             self.logger.error("{}".format(err))
             return None
+
+    def save_akashi_token(self, tablename, slack_name, akashi_token, akashi_token_save_time):
+        table = self.resource.Table(tablename)
+        try:
+            method_str = f'update_item(\
+                            Key={{\
+                                "slack_name": "{slack_name}"\
+                            }},\
+                            UpdateExpression="set akashi_token=:akashi_token, akashi_token_save_time=:akashi_token_save_time",\
+                            ExpressionAttributeValues=param,\
+                            ReturnValues="UPDATED_NEW"\
+                        )'
+
+            param = dict()
+            param[':akashi_token'] = akashi_token
+            param[':akashi_token_save_time'] = akashi_token_save_time\
+
+            self.logger.debug(f"method_str={method_str}")
+            response = self.request_within_capacity(table, method_str, param)
+            return response
+        except Exception as err:
+            self.logger.error("{}".format(err))
+            return None

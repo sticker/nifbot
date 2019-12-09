@@ -1,3 +1,4 @@
+from datetime import datetime
 from lib import get_logger
 from lib.aws.dynamodb import Dynamodb
 from lib.akashi.stamps import Stamps
@@ -21,8 +22,9 @@ class Akashi:
         return user[0]['akashi_token']
 
     def save_akashi_token(self, slack_name, akashi_token):
-        response = self.dynamodb.update_by_key(tablename='user', key='slack_name', value=slack_name,
-                                               update_key='akashi_token', update_value=akashi_token)
+        now = datetime.now().strftime("%Y%m%d%H%M%S")
+        response = self.dynamodb.save_akashi_token(tablename='user', slack_name=slack_name,
+                                                   akashi_token=akashi_token, akashi_token_save_time=now)
         self.logger.debug(response)
 
         # TODO: responseを見て正常異常判定
