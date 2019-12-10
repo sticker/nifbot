@@ -4,13 +4,13 @@ from slackbot.bot import listen_to
 from slackbot.bot import respond_to
 from slackbot.dispatcher import Message
 from lib.nifbot.help import Help
+from lib.nifbot.company_product import CompanyProduct
 from lib.nifbot.company_user import CompanyUser
 from lib.nifbot.company_commodity import CompanyCommodity
 from lib.nifbot.akashi import Akashi
-from lib.akashi.stamps import Stamps
 import logging
 
-
+company_product = CompanyProduct()
 company_user = CompanyUser()
 company_commodity = CompanyCommodity()
 akashi = Akashi()
@@ -51,15 +51,34 @@ def mention_handler(message: Message):
         response = akashi.finish(message)
         return
 
-    # 課金コード（7桁数字）が含まれていれば商品マスタを検索
-    charge_codes = [s for s in words if re.match('[0-9]{7}', s)]
-    if len(charge_codes) > 0:
-        # 商品マスタを検索
-        hit_count = company_commodity.search(message, charge_codes)
-        if hit_count > 0:
-            return
+    # どれか1件でもヒットしたらTrueにする
+    hit_at_least = False
+
+    # 課金コード（7桁数字）で商品マスタを検索
+    if company_commodity.search_by_charge_code(message, words) > 0:
+        hit_at_least = True
+
+    # プロダクトコードが含まれていればプロダクトマスタを検索
+    if company_product.search_by_code(message, words) > 0:
+        hit_at_least = True
+
+    # コードでの検索にヒットしてたら終了にする
+    if hit_at_least:
+        return
+
+    # 商品名で商品マスタを検索
+    if company_commodity.search_by_name(message, words) > 0:
+        hit_at_least = True
+
+    # プロダクト名でプロダクトマスタを検索
+    if company_product.search_by_name(message, words) > 0:
+        hit_at_least = True
 
     # 社員マスタを検索
-    hit_count = company_user.search(message, words)
-    if hit_count == 0:
+    if company_user.search(message, words) > 0:
+        hit_at_least = True
+
+    if not hit_at_least:
         message.reply("ちょっと何言ってるかわからないです...")
+
+    return

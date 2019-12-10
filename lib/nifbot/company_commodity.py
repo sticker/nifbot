@@ -1,59 +1,56 @@
 import re
-import numpy as np
-from lib import get_logger
-from lib.aws.s3 import S3
+from lib.nifbot.company_master import CompanyMaster
 
 
-class CompanyCommodity:
+class CompanyCommodity(CompanyMaster):
     def __init__(self):
-        self.logger = get_logger(__name__)
-        self.s3 = S3()
+        super().__init__()
+        self.master_name_text = '商品マスタ'
+        self.filename = 'format/commodity/commodity-code.csv'
+        self.get_columns = ['commodity_kanji_name', 'large_kbn', 'details_kbn']
 
-    def search(self, message, words):
-        self.logger.info("商品マスタ検索を開始")
-        df = self.s3.load_company_master(filename="format/commodity/commodity-code.csv")
+    def search_by_charge_code(self, message, words):
+        charge_code_regex = '[0-9]{7}'
+        charge_codes = [s for s in words if re.match(charge_code_regex, s)]
+        if len(charge_codes) > 0:
+            hit_count = super().search_master(message, master_name_text=self.master_name_text,
+                                              filename=self.filename,
+                                              search_words=charge_codes,
+                                              # charge_codeというカラムは無いが、課金大区分/小区分のAND条件で検索される
+                                              search_columns=['charge_code'],
+                                              search_column_regex=charge_code_regex,
+                                              get_columns=self.get_columns)
+            return hit_count
 
-        # 7桁数字のみのリストに変換
-        words = [s for s in words if re.match('[0-9]{7}', s)]
+        return 0
 
-        # 検索結果のndarrayを入れる変数
-        hit = None
-        # 取得対象カラム
-        get_columns = ['commodity_kanji_name', 'large_kbn', 'details_kbn']
+    def search_by_name(self, message, words):
+        hit_count = super().search_master(message, master_name_text=self.master_name_text,
+                                          filename=self.filename,
+                                          search_words=words,
+                                          search_columns=['commodity_kanji_name'],
+                                          search_column_regex='.*',
+                                          get_columns=self.get_columns)
+        return hit_count
 
-        for word in words:
-            large_kbn = int(word[0:2])
-            details_kbn = int(word[3:7])
-            self.logger.debug(f"large_kbn={large_kbn} details_kbn={details_kbn}")
-            self.logger.debug(df['large_kbn'])
-            self.logger.debug(df['details_kbn'])
-            # 課金大小区分で検索
-            target_df = df[(df['large_kbn'] == large_kbn) & (df['details_kbn'] == details_kbn)]
-            self.logger.debug(target_df)
-            # 取得できなければ次へ
-            if len(target_df) == 0:
-                continue
-            if len(target_df) >= 20:
-                message.reply("商品マスタを検索したらたくさんヒットしちゃいました...！")
-                return len(target_df)
-            # 取得できたらndarrayを取得結果(target)に追加
-            values = target_df[get_columns].fillna('').values
-            self.logger.debug(values)
-            if hit is None:
-                hit = values
-            else:
-                hit = np.concatenate([hit, values])
-        self.logger.debug(hit)
+    def get_target_df(self, df, search_dict):
+        search_column = list(search_dict.keys())[0]
+        self.logger.debug(search_column)
+        if search_column == 'charge_code':
+            charge_code = list(search_dict.values())[0]
+            large_kbn = int(charge_code[0:2])
+            details_kbn = int(charge_code[3:7])
+            df = df[(df['large_kbn'] == large_kbn) & (df['details_kbn'] == details_kbn)]
+        else:
+            for column, word in search_dict.items():
+                df = df[df[column].fillna('').str.contains(word, case=False)]
 
-        if hit is None or len(hit) == 0:
-            self.logger.debug("課金コードを検索しましたが見つかりませんでした")
-            # message.reply("課金コードを検索しましたが見つかりませんでした...")
-            return 0
+        return df
 
+    def get_message_text(self, master_name_text, hit):
         message_texts = list()
-        message_texts.append("商品マスタを検索しました！")
+        message_texts.append(f"{master_name_text}を検索しました！")
         for i in range(len(hit)):
             charge_code = str(hit[i, 1]).zfill(2) + str(hit[i, 2]).zfill(5)
             message_texts.append(f"{charge_code} {str(hit[i, 0])}")
-        message.reply("\n".join(message_texts))
-        return len(hit)
+        return message_texts
