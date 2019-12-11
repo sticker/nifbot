@@ -19,9 +19,11 @@ class Help:
         botname = self.botname
 
         usages = list()
-        usages.append(f"`@{botname} [社員ID/社員氏名]` : 指定したID/氏名の社員を検索します")
-        usages.append(f"`@{botname} [課金コード￿(大小区分 7桁数字)]` : 商品を検索します")
-        usages.append(self.get_akashi_token_body())
-        usages.append(f"`@{botname} 出勤` : AKASHIの出勤打刻をします")
-        usages.append(f"`@{botname} 退勤` : AKASHIの退勤打刻をします")
+        usages.append(f"`@{botname} [社員ID/氏名/メアド/内線/所属/役職]` : 統合アカウントを検索します")
+        usages.append(f"`@{botname} [プロダクトコード￿￿/￿名称]` : プロダクトコード/名称を検索します")
+        usages.append(f"`@{botname} [課金大小区分(7桁数字)/名称]` : 課金大小区分/名称を検索します")
+        # usages.append(self.get_akashi_token_body())
+        # usages.append(f"`@{botname} 出勤` : AKASHIの出勤打刻をします")
+        # usages.append(f"`@{botname} 退勤` : AKASHIの退勤打刻をします")
+        usages.append(f"詳細は<https://atlassian.nifty.com/confluence/pages/viewpage.action?pageId=111254072|こちら>を参照してください。")
         message.send("\n".join(usages))
