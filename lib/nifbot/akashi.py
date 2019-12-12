@@ -45,6 +45,11 @@ class Akashi:
         return
 
     def begin(self, message):
+
+        # ￿打刻機能は一旦無効化しておきます。使える日が来たらオープンしましょう。
+        message.reply("おはようございます！AKASHIの画面で打刻してくださいね:smiling_imp:")
+        return
+
         # リクエストしたユーザ名
         slack_name = message.channel._client.users[message.body['user']][u'name']
         akashi_token = self.get_akashi_token(slack_name)
@@ -52,7 +57,6 @@ class Akashi:
         if akashi_token == '':
             message.reply("AKASHIのトークンを登録してください")
             self.help.akashi_token(message)
-            # TODO: トークン登録IFを作成する
             return
 
         response_body = self.stamps.begin(akashi_token)
@@ -65,6 +69,11 @@ class Akashi:
             self.logger.warning(response_body)
 
     def finish(self, message):
+
+        # ￿打刻機能は一旦無効化しておきます。使える日が来たらオープンしましょう。
+        message.reply("おつかれさまでした！AKASHIの画面で打刻してくださいね:smiling_imp:")
+        return
+
         # リクエストしたユーザ名
         slack_name = message.channel._client.users[message.body['user']][u'name']
         akashi_token = self.get_akashi_token(slack_name)
