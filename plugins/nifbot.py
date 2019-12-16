@@ -19,6 +19,10 @@ akashi = Akashi()
 @respond_to('.*')
 def mention_handler(message: Message):
     logging.info(message.body)
+    # リクエストしたユーザ名
+    slack_name = message.channel._client.users[message.body['user']][u'name']
+    logging.info(f"{slack_name} のリクエストを処理します")
+
     text = message.body['text']
     words = text.strip().replace("　", " ").replace(",", " ").replace("\n", " ").split()
     logging.info(words)
@@ -66,16 +70,16 @@ def mention_handler(message: Message):
     if hit_at_least:
         return
 
+    # 社員マスタを検索
+    if company_user.search(message, words) > 0:
+        hit_at_least = True
+
     # 商品名で商品マスタを検索
     if company_commodity.search_by_name(message, words) > 0:
         hit_at_least = True
 
     # プロダクト名でプロダクトマスタを検索
     if company_product.search_by_name(message, words) > 0:
-        hit_at_least = True
-
-    # 社員マスタを検索
-    if company_user.search(message, words) > 0:
         hit_at_least = True
 
     if not hit_at_least:

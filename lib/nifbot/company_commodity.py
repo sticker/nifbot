@@ -1,4 +1,5 @@
 import re
+import pandas as pd
 from lib.nifbot.company_master import CompanyMaster
 
 
@@ -7,7 +8,14 @@ class CompanyCommodity(CompanyMaster):
         super().__init__()
         self.master_name_text = '商品マスタ'
         self.filename = 'format/commodity/commodity-code.csv'
-        self.get_columns = ['commodity_kanji_name', 'large_kbn', 'details_kbn']
+        self.get_columns = ['commodity_kanji_name', 'large_kbn', 'details_kbn', 'charge_sec_code', 'group_name']
+
+    def get_master_df(self, filename):
+        # 結合
+        df_commodity = self.s3.load_company_master(filename="format/commodity/commodity-code.csv")
+        df_group = self.s3.load_company_master(filename="format/group/nifty_general_org.csv")
+        df = pd.merge(df_commodity, df_group, left_on='charge_sec_code', right_on='group_id', how='left')
+        return df
 
     def search_by_charge_code(self, message, words):
         charge_code_regex = '[0-9]{7}'
@@ -52,5 +60,5 @@ class CompanyCommodity(CompanyMaster):
         message_texts.append(f"{master_name_text}を検索しました！")
         for i in range(len(hit)):
             charge_code = str(hit[i, 1]).zfill(2) + str(hit[i, 2]).zfill(5)
-            message_texts.append(f"{charge_code} {str(hit[i, 0])}")
+            message_texts.append(f"{charge_code} {str(hit[i, 0])} {str(hit[i, 3])}:{str(hit[i, 4])}")
         return message_texts
