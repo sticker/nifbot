@@ -8,12 +8,14 @@ from lib.nifbot.company_product import CompanyProduct
 from lib.nifbot.company_user import CompanyUser
 from lib.nifbot.company_commodity import CompanyCommodity
 from lib.nifbot.akashi import Akashi
+from lib.nifbot.talk import Talk
 import logging
 
 company_product = CompanyProduct()
 company_user = CompanyUser()
 company_commodity = CompanyCommodity()
 akashi = Akashi()
+talk = Talk()
 
 
 @respond_to('.*')
@@ -82,7 +84,9 @@ def mention_handler(message: Message):
     if company_product.search_by_name(message, words) > 0:
         hit_at_least = True
 
+    # 1件もヒットしなかったら会話とみなす
     if not hit_at_least:
-        message.reply("ちょっと何言ってるかわからないです...")
-
+        # 会話APIで応答を返す
+        if not talk.talking(message, words):
+            message.reply("ちょっと何言ってるかわからないです...")
     return
