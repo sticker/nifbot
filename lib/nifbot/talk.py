@@ -13,7 +13,7 @@ class Talk:
         try:
             res = self.talk_api.get(talking)
             if res != '':
-                message.reply(res)
+                message.reply(res + " :nifbot:")
                 return True
             else:
                 return False

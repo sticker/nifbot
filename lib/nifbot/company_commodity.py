@@ -55,9 +55,7 @@ class CompanyCommodity(CompanyMaster):
 
         return df
 
-    def get_message_text(self, master_name_text, hit):
-        message_texts = list()
-        message_texts.append(f"{master_name_text}を検索しました！")
+    def add_message_text_record(self, message_texts, hit):
         for i in range(len(hit)):
             charge_code = str(hit[i, 1]).zfill(2) + str(hit[i, 2]).zfill(5)
             message_texts.append(f"{charge_code} {str(hit[i, 0])} {str(hit[i, 3])}:{str(hit[i, 4])}")
