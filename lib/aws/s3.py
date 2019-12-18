@@ -58,10 +58,8 @@ class S3(object):
         else:
             # ローカルにファイルが有れば、更新日時を取得
             last_download_time = datetime.fromtimestamp(os.path.getmtime(local_path))
-            self.logger.debug(last_download_time)
             # 更新日時が今日の0時以前であればS3からダウンロード
             today_midnight = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
-            self.logger.debug(today_midnight)
 
             if last_download_time < today_midnight:
                 self.download_company_master(filename, local_path)

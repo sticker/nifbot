@@ -23,6 +23,7 @@ class CompanyMaster:
 
         message_texts = self.get_message_text(master_name_text, hit_count, hit)
         message.reply("\n".join(message_texts))
+        self.logger.info("\n".join(message_texts))
 
         # ヒット件数を返す
         return hit_count
@@ -41,13 +42,11 @@ class CompanyMaster:
                     search_column: word
                 }
                 target_df = self.get_target_df(df, search_dict)
-                self.logger.debug(target_df)
                 # 取得できなければ次へ
                 if len(target_df) == 0:
                     continue
                 # 取得できたらndarrayを取得結果(target)に追加
                 values = target_df[get_columns].fillna('').values
-                self.logger.debug(values)
                 if hit is None:
                     hit = values
                 elif len(hit) + len(values) < self.max_count:

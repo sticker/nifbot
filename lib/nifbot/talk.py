@@ -13,7 +13,9 @@ class Talk:
         try:
             res = self.talk_api.get(talking)
             if res != '':
-                message.reply(res + " :nifbot:")
+                message_text = res + " :nifbot:"
+                message.reply(message_text)
+                self.logger.info(message_text)
                 return True
             else:
                 return False

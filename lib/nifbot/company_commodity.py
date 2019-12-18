@@ -43,7 +43,6 @@ class CompanyCommodity(CompanyMaster):
 
     def get_target_df(self, df, search_dict):
         search_column = list(search_dict.keys())[0]
-        self.logger.debug(search_column)
         if search_column == 'charge_code':
             charge_code = list(search_dict.values())[0]
             large_kbn = int(charge_code[0:2])

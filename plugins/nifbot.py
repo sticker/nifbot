@@ -23,14 +23,15 @@ def mention_handler(message: Message):
     logging.info(message.body)
     # リクエストしたユーザ名
     slack_name = message.channel._client.users[message.body['user']][u'name']
-    logging.info(f"{slack_name} のリクエストを処理します")
 
     text = message.body['text']
     words = text.strip().replace("　", " ").replace(",", " ").replace("\n", " ").split()
-    logging.info(words)
+    logging.info(f"{slack_name} のリクエストを処理します words={words}")
 
     if len(words) == 0:
-        message.reply("何かしゃべってくださいよ！")
+        message_text = "何かしゃべってくださいよ！"
+        message.reply(message_text)
+        logging.info(message_text)
         return
 
     # Help
@@ -88,5 +89,7 @@ def mention_handler(message: Message):
     if not hit_at_least:
         # 会話APIで応答を返す
         if not talk.talking(message, words):
-            message.reply("ちょっと何言ってるかわからないです...")
+            message_text = "ちょっと何言ってるかわからないです..."
+            message.reply(message_text)
+            logging.info(message_text)
     return
