@@ -18,14 +18,22 @@ akashi = Akashi()
 talk = Talk()
 
 
+def text_to_wards(text):
+    text = text.strip()
+    # リンクがついていたら除外する
+    # 例） <http://test.na|test.na> など
+    text = re.sub("<[http:|https:|tel:|mailto:]\S*\||>", "", text)
+    # 対応する区切り文字を半角スペースに統一した上でリスト化
+    words = text.replace("　", " ").replace(",", " ").replace("\n", " ").split()
+    return words
+
+
 @respond_to('.*')
 def mention_handler(message: Message):
     logging.info(message.body)
     # リクエストしたユーザ名
     slack_name = message.channel._client.users[message.body['user']][u'name']
-
-    text = message.body['text']
-    words = text.strip().replace("　", " ").replace(",", " ").replace("\n", " ").split()
+    words = text_to_wards(message.body['text'])
     logging.info(f"{slack_name} のリクエストを処理します words={words}")
 
     if len(words) == 0:
