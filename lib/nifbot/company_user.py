@@ -11,7 +11,7 @@ class CompanyUser(CompanyMaster):
         self.company_user_tag = CompanyUserTag()
 
     def search(self, message, words):
-        get_columns = ['uid', 'full_name_kanji', 'mail', 'telephone_number', 'group_name', 'position_name']
+        get_columns = ['uid', 'full_name_kanji', 'mail', 'telephone_number', 'group_id', 'group_name', 'position_name']
         search_columns = get_columns
         hit_count = self.search_master(message, master_name_text='社員マスタ',
                                        filename=None,
