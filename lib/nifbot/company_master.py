@@ -68,7 +68,7 @@ class CompanyMaster:
 
     def get_target_df(self, df, search_dict):
         for column, word in search_dict.items():
-            df = df[df[column].fillna('').str.contains(word, case=False)]
+            df = df[df[column].astype(str).fillna('').str.contains(word, case=False)]
 
         return df
 
