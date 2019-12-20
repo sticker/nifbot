@@ -59,11 +59,11 @@ class CompanyUserTag:
             uids = self.get_uids_by_tag(tag)
             if len(uids) == 0:
                 texts.append("このタグがついている人はいません")
+                message_texts.append(' '.join(texts))
                 continue
 
             for uid in uids:
                 texts.append(f"`{uid}`")
-
             message_texts.append(' '.join(texts))
 
         message_text = '\n'.join(message_texts)
@@ -95,8 +95,7 @@ class CompanyUserTag:
             uids_by_tag = self.get_uids_by_tag(tag)
             if len(uids_by_tag) == 0:
                 continue
-            for record in uids_by_tag:
-                uids.extend(uids_by_tag)
+            uids.extend(uids_by_tag)
 
         return uids
 
