@@ -6,6 +6,7 @@ from slackbot.dispatcher import Message
 from lib.nifbot.help import Help
 from lib.nifbot.company_product import CompanyProduct
 from lib.nifbot.company_user import CompanyUser
+from lib.nifbot.company_user_tag import CompanyUserTag
 from lib.nifbot.company_commodity import CompanyCommodity
 from lib.nifbot.akashi import Akashi
 from lib.nifbot.talk import Talk
@@ -13,6 +14,7 @@ import logging
 
 company_product = CompanyProduct()
 company_user = CompanyUser()
+company_user_tag = CompanyUserTag()
 company_commodity = CompanyCommodity()
 akashi = Akashi()
 talk = Talk()
@@ -65,6 +67,24 @@ def mention_handler(message: Message):
     if len(stamps_finish_words) > 0:
         response = akashi.finish(message)
         return
+
+    # 社員情報のタグ制御
+    if 'tag' in words:
+        uid_words = [s for s in words if re.match('[a-zA-Z]{3}[0-9]{5}', s)]
+        tag_words = [s for s in words if s not in uid_words and s != 'tag']
+        # IDとタグどちらも指定があれば、タグ登録処理をする
+        if len(uid_words) > 0 and len(tag_words) > 0:
+            response = company_user_tag.tag(message, uid_words, tag_words)
+            return
+        # IDのみの指定であれば、そのIDについているタグ一覧を表示する
+        if len(uid_words) > 0 and len(tag_words) == 0:
+            response = company_user_tag.tag_list(message, uid_words)
+            return
+        # タグのみの指定であれば、そのタグがついているID一覧を表示する
+        if len(uid_words) == 0 and len(tag_words) > 0:
+            response = company_user_tag.uid_list(message, tag_words)
+            return
+
 
     # どれか1件でもヒットしたらTrueにする
     hit_at_least = False
