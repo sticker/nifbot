@@ -21,6 +21,10 @@ class CompanyMaster:
         if hit_count == 0:
             return hit_count
 
+        # 検索結果から重複を削除してソート
+        hit = np.array(list(map(list, set(map(tuple, hit)))))
+        hit = hit[hit[:, 0].argsort(), :]
+
         message_texts = self.get_message_text(master_name_text, hit_count, hit)
         message.reply("\n".join(message_texts))
         self.logger.info("\n".join(message_texts))
