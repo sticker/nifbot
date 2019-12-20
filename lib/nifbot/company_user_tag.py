@@ -13,24 +13,17 @@ class CompanyUserTag:
     def tag(self, message: Message, uids: list, tags: list):
         # リクエストしたユーザ名
         slack_name = message.channel._client.users[message.body['user']][u'name']
-        # IDをすべて大文字化する
-        uids = list(map(str.upper, uids))
 
         for uid in uids:
             for tag in tags:
                 if self.save_tag(uid, tag, owner=slack_name):
-                    message_text = f"[{uid}]に[{tag}]タグを登録しました！"
+                    message_text = f"{uid}に `{tag}` タグを登録しました！"
                 else:
-                    message_text = f"[{uid}]に[{tag}]タグの登録に失敗しました...すいません！"
+                    message_text = f"{uid}に `{tag}` タグの登録に失敗しました...すいません！"
                 message.reply(message_text)
         return
 
     def tag_list(self, message: Message, uids: list):
-        # リクエストしたユーザ名
-        slack_name = message.channel._client.users[message.body['user']][u'name']
-        # IDをすべて大文字化する
-        uids = list(map(str.upper, uids))
-
         message_texts = list()
         for uid in uids:
             texts = [f"{uid}:"]
@@ -50,9 +43,6 @@ class CompanyUserTag:
         return
 
     def uid_list(self, message: Message, tags: list):
-        # リクエストしたユーザ名
-        slack_name = message.channel._client.users[message.body['user']][u'name']
-
         message_texts = list()
         for tag in tags:
             texts = [f"{tag}:"]
@@ -71,6 +61,16 @@ class CompanyUserTag:
         self.logger.info(message_text)
         return
 
+    def tag_rm(self, message: Message, uids: list, tags: list):
+        for uid in uids:
+            for tag in tags:
+                if self.remove_tag(uid, tag):
+                    message_text = f"[{uid}]から[{tag}]タグを削除しました！"
+                else:
+                    message_text = f"[{uid}]から[{tag}]タグの削除に失敗しました...すいません！"
+                message.reply(message_text)
+        return
+
     def save_tag(self, uid: str, tag: str, owner: str):
         now = datetime.now().strftime("%Y%m%d%H%M%S")
         item = {
@@ -85,6 +85,21 @@ class CompanyUserTag:
             return True
         except:
             self.logger.warning("タグの登録で例外が発生しました")
+            import traceback
+            traceback.print_exc()
+            return False
+
+    def remove_tag(self, uid: str, tag: str):
+        key = {
+            'uid': uid,
+            'tag': tag
+        }
+        self.logger.debug(f"タグを削除します key={key}")
+        try:
+            self.dynamodb.remove(target=self.tablename, key=key)
+            return True
+        except:
+            self.logger.warning("タグの削除で例外が発生しました")
             import traceback
             traceback.print_exc()
             return False

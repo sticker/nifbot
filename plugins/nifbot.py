@@ -70,12 +70,24 @@ def mention_handler(message: Message):
 
     # 社員情報のタグ制御
     if 'tag' in words:
+        # IDを取得
         uid_words = [s for s in words if re.match('[a-zA-Z]{3}[0-9]{5}', s)]
-        tag_words = [s for s in words if s not in uid_words and s != 'tag']
-        # IDとタグどちらも指定があれば、タグ登録処理をする
+        # タグを取得
+        tag_words = [s for s in words if s not in uid_words and s != 'tag' and s != 'rm']
+        # IDの重複を削除
+        uid_words = list(dict.fromkeys(uid_words))
+        # IDを大文字化する
+        uid_words = list(map(str.upper, uid_words))
+        # IDとタグどちらも指定があれば、タグ登録か削除処理をする
         if len(uid_words) > 0 and len(tag_words) > 0:
-            response = company_user_tag.tag(message, uid_words, tag_words)
-            return
+            if 'rm' in words:
+                # 削除
+                response = company_user_tag.tag_rm(message, uid_words, tag_words)
+                return
+            else:
+                # 登録
+                response = company_user_tag.tag(message, uid_words, tag_words)
+                return
         # IDのみの指定であれば、そのIDについているタグ一覧を表示する
         if len(uid_words) > 0 and len(tag_words) == 0:
             response = company_user_tag.tag_list(message, uid_words)
