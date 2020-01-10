@@ -8,6 +8,7 @@ from lib.nifbot.company_product import CompanyProduct
 from lib.nifbot.company_user import CompanyUser
 from lib.nifbot.company_user_tag import CompanyUserTag
 from lib.nifbot.company_commodity import CompanyCommodity
+from lib.nifbot.company_group import CompanyGroup
 from lib.nifbot.akashi import Akashi
 from lib.nifbot.talk import Talk
 import logging
@@ -16,6 +17,7 @@ company_product = CompanyProduct()
 company_user = CompanyUser()
 company_user_tag = CompanyUserTag()
 company_commodity = CompanyCommodity()
+company_group = CompanyGroup()
 akashi = Akashi()
 talk = Talk()
 
@@ -109,6 +111,10 @@ def mention_handler(message: Message):
     if company_product.search_by_code(message, words) > 0:
         hit_at_least = True
 
+    # 組織コードが含まれていれば組織マスタを検索
+    if company_group.search_by_code(message, words) > 0:
+        hit_at_least = True
+
     # コードでの検索にヒットしてたら終了にする
     if hit_at_least:
         return
@@ -123,6 +129,10 @@ def mention_handler(message: Message):
 
     # プロダクト名でプロダクトマスタを検索
     if company_product.search_by_name(message, words) > 0:
+        hit_at_least = True
+
+    # 組織名で組織マスタを検索
+    if company_group.search_by_name(message, words) > 0:
         hit_at_least = True
 
     # 1件もヒットしなかったら会話とみなす
