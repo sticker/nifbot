@@ -21,6 +21,10 @@ class CompanyMaster:
         if hit_count == 0:
             return hit_count
 
+        # 検索結果から重複を削除してソート
+        hit = np.array(list(map(list, set(map(tuple, hit)))))
+        hit = hit[hit[:, 0].argsort(), :]
+
         message_texts = self.get_message_text(master_name_text, hit_count, hit)
         message.reply("\n".join(message_texts))
         self.logger.info("\n".join(message_texts))
@@ -68,7 +72,7 @@ class CompanyMaster:
 
     def get_target_df(self, df, search_dict):
         for column, word in search_dict.items():
-            df = df[df[column].fillna('').str.contains(word, case=False)]
+            df = df[df[column].astype(str).fillna('').str.contains(word, case=False)]
 
         return df
 

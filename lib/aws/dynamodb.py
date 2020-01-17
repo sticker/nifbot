@@ -23,7 +23,6 @@ class Dynamodb(object):
         if region_name != '':
             session = Session(region_name=region_name)
             self.resource = session.resource('dynamodb')
-            self.default_table = 'bookbot-entry'
 
     def insert(self, target, item):
         table = self.resource.Table(target)
@@ -68,7 +67,7 @@ class Dynamodb(object):
         self.logger.log(INFO, "%s のレコードをすべて削除しました" % target)
         return 0
 
-    def find_all(self, target):
+    def scan(self, target):
         table = self.resource.Table(target)
         convert_items = []
         ExclusiveStartKey = None
@@ -88,28 +87,10 @@ class Dynamodb(object):
 
         return convert_items
 
-    def find(self, target: str, record_num: int):
-        table = self.resource.Table(target)
-        convert_items = []
-        ExclusiveStartKey = None
-        while True:
-            if ExclusiveStartKey is None:
-                response = self.request_within_capacity(table, "scan()")
-            else:
-                response = self.request_within_capacity(table, "scan(ExclusiveStartKey=param)", ExclusiveStartKey)
-
-            items = response["Items"]
-            for item in items:
-                convert_items.append(self.none_to_emptystr(item))
-                if len(convert_items) >= record_num:
-                    break
-
-            if ("LastEvaluatedKey" in response) is True:
-                ExclusiveStartKey = response["LastEvaluatedKey"]
-            else:
-                break
-
-        return convert_items
+    def scan_specified_attr_value(self, tablename, attr_name, attr_value):
+        fe = Attr(attr_name).contains(attr_value)
+        method_str = f"scan(FilterExpression=param"
+        return self.request(tablename, method_str, fe)
 
     def request(self, tablename, method_str, param):
         """
