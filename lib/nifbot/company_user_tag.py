@@ -76,9 +76,9 @@ class CompanyUserTag:
         for uid in uids:
             for tag in tags:
                 if self.remove_tag(uid, tag):
-                    message_text = f"[{uid}]から[{tag}]タグを削除しました！"
+                    message_text = f"[{uid}]から `{tag}` のタグを削除しました！"
                 else:
-                    message_text = f"[{uid}]から[{tag}]タグの削除に失敗しました...すいません！"
+                    message_text = f"[{uid}]から `{tag}` のタグ削除に失敗しました...すいません！"
                 message.reply(message_text)
         return
 
