@@ -29,8 +29,12 @@ class CompanyUser(CompanyMaster):
         # マスタ検索
         hit_count, hit = self.search_master_ex(message, master_name_text, filename, search_columns, search_words, get_columns)
 
-        # タグ検索
-        tag_uids = self.company_user_tag.get_uids_by_tags(search_words)
+        # タグあいまい検索
+        uids = self.company_user_tag.get_uids_by_tags(search_words)
+        # 正式なタグ名とIDの辞書リストが返ってくるので、IDのみのリストを作る
+        tag_uids = list()
+        for uid in uids:
+            tag_uids.append(uid['uid'])
         # タグ検索でヒットしたら、そのIDでマスタ検索して結果に追加する
         if len(tag_uids) > 0:
             # マスタ検索
