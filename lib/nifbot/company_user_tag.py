@@ -45,16 +45,26 @@ class CompanyUserTag:
     def uid_list(self, message: Message, tags: list):
         message_texts = list()
         for tag in tags:
-            texts = [f"{tag}:"]
             uids = self.get_uids_by_tag(tag)
             if len(uids) == 0:
-                texts.append("このタグがついている人はいません")
-                message_texts.append(' '.join(texts))
+                message_texts.append(f"{tag}: このタグがついている人はいません")
                 continue
 
+            tag_dict = dict()
+            # tag_dict = {'タグ名': ['ID1','ID2',・・・]}
             for uid in uids:
-                texts.append(f"`{uid}`")
-            message_texts.append(' '.join(texts))
+                if uid['tag'] not in tag_dict:
+                    tag_dict[uid['tag']] = list()
+                    tag_dict[uid['tag']].append(uid['uid'])
+                else:
+                    tag_dict[uid['tag']].append(uid['uid'])
+
+            for tag_dict_tag, tag_dict_uids in tag_dict.items():
+                texts = list()
+                texts.append(f"{tag_dict_tag}:")
+                for tag_dict_uid in tag_dict_uids:
+                    texts.append(f"`{tag_dict_uid}`")
+                message_texts.append(' '.join(texts))
 
         message_text = '\n'.join(message_texts)
         message.reply(message_text)
@@ -122,7 +132,11 @@ class CompanyUserTag:
             return uids
 
         for record in records:
-            uids.append(record['uid'])
+            item = {
+                'uid': record['uid'],
+                'tag': record['tag']
+            }
+            uids.append(item)
 
         return uids
 

@@ -88,7 +88,7 @@ class Dynamodb(object):
         return convert_items
 
     def scan_specified_attr_value(self, tablename, attr_name, attr_value):
-        fe = Key(attr_name).eq(attr_value)
+        fe = Attr(attr_name).contains(attr_value)
         method_str = f"scan(FilterExpression=param"
         return self.request(tablename, method_str, fe)
 
