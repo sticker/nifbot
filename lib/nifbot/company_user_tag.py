@@ -26,12 +26,13 @@ class CompanyUserTag:
     def tag_list(self, message: Message, uids: list):
         message_texts = list()
         for uid in uids:
-            texts = [f"{uid}:"]
             tags = self.get_tags_by_uid(uid)
             if len(tags) == 0:
-                texts.append("タグはついていません")
+                message_texts.append(f"{uid}: タグはついていません")
                 continue
 
+            texts = list()
+            texts.append(f"{uid}:")
             for tag in tags:
                 texts.append(f"`{tag}`")
 
