@@ -62,7 +62,7 @@ class CompanyUser(CompanyMaster):
 
     def get_master_df(self, filename):
         # 結合
-        df_user = self.s3.load_company_master(filename="format/user/nifty_general_user2.csv")
+        df_user = self.s3.load_company_master(filename="format/user/nifty_general_user.csv")
         df_group = self.s3.load_company_master(filename="format/group/nifty_general_org.csv")
         df_position = self.s3.load_company_master(filename="format/position/nifty_general_title.csv")
         df_user_group = pd.merge(df_user, df_group, left_on='department', right_on='group_id', how='left')
