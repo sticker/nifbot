@@ -8,7 +8,7 @@ class CompanyMaster:
     def __init__(self):
         self.logger = get_logger(__name__)
         self.s3 = S3()
-        self.max_count = 50
+        self.max_count = 110
 
     def search_master(self, message, master_name_text, filename, search_words, search_columns, search_column_regex, get_columns):
         self.logger.info(f"{master_name_text}検索を開始")
