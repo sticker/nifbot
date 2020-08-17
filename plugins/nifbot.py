@@ -11,6 +11,7 @@ from lib.nifbot.company_commodity import CompanyCommodity
 from lib.nifbot.company_group import CompanyGroup
 from lib.nifbot.akashi import Akashi
 from lib.nifbot.talk import Talk
+from lib.nifbot.faq import Faq
 import logging
 
 company_product = CompanyProduct()
@@ -20,6 +21,7 @@ company_commodity = CompanyCommodity()
 company_group = CompanyGroup()
 akashi = Akashi()
 talk = Talk()
+faq = Faq()
 
 
 def text_to_wards(text):
@@ -139,11 +141,13 @@ def mention_handler(message: Message):
     if company_group.search_by_name(message, words) > 0:
         hit_at_least = True
 
-    # 1件もヒットしなかったら会話とみなす
+    # 1件もヒットしなかったらFAQか会話とみなす
     if not hit_at_least:
-        # 会話APIで応答を返す
-        if not talk.talking(message, words):
-            message_text = "ちょっと何言ってるかわからないです..."
-            message.reply(message_text)
-            logging.info(message_text)
+        # FAQ検索
+        if not faq.ask(message, words):
+            # 会話APIで応答を返す
+            if not talk.talking(message, words):
+                message_text = "ちょっと何言ってるかわからないです..."
+                message.reply(message_text)
+                logging.info(message_text)
     return
