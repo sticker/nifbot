@@ -1,6 +1,6 @@
 import re
 import pandas as pd
-from lib.nifbot.company_master import CompanyMaster
+from lib.company_master.company_master import CompanyMaster
 
 
 class CompanyCommodity(CompanyMaster):
@@ -19,11 +19,11 @@ class CompanyCommodity(CompanyMaster):
         df['charge_code'] = df['large_kbn'].astype(str).str.zfill(2) + df['details_kbn'].astype(str).str.zfill(5)
         return df
 
-    def search_by_charge_code(self, message, words):
+    def search_by_charge_code(self, slack, words):
         charge_code_regex = '[0-9]{7}'
         charge_codes = [s for s in words if re.match(charge_code_regex, s)]
         if len(charge_codes) > 0:
-            hit_count = super().search_master(message, master_name_text=self.master_name_text,
+            hit_count = super().search_master(slack, master_name_text=self.master_name_text,
                                               filename=self.filename,
                                               search_words=charge_codes,
                                               search_columns=['charge_code'],
@@ -33,8 +33,8 @@ class CompanyCommodity(CompanyMaster):
 
         return 0
 
-    def search_by_name(self, message, words):
-        hit_count = super().search_master(message, master_name_text=self.master_name_text,
+    def search_by_name(self, slack, words):
+        hit_count = super().search_master(slack, master_name_text=self.master_name_text,
                                           filename=self.filename,
                                           search_words=words,
                                           search_columns=['commodity_kanji_name'],

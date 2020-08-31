@@ -7,6 +7,9 @@ name = "pypi"
 slackbot = "==0.5.4"
 "boto3" = "==1.10.16"
 pandas = "*"
+flask = "==1.1.2"
+slackeventsapi = "==2.2.1"
+slackclient = "==2.8.0"
 
 [dev-packages]
 pytest = "*"

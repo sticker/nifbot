@@ -10,12 +10,12 @@ class Help:
         botname = self.botname
         return f"`@{botname} token [AKASHI APIトークン]` : AKASHIのAPIトークンを設定します"
 
-    def akashi_token(self, message):
+    def akashi_token(self, slack):
         usages = list()
         usages.append(self.get_akashi_token_body())
-        message.send("\n".join(usages))
+        slack.send("\n".join(usages))
 
-    def default(self, message):
+    def default(self, slack):
         botname = self.botname
 
         usages = list()
@@ -31,4 +31,4 @@ class Help:
         # usages.append(f"`@{botname} 出勤` : AKASHIの出勤打刻をします")
         # usages.append(f"`@{botname} 退勤` : AKASHIの退勤打刻をします")
         usages.append(f"詳細は<https://atlassian.nifty.com/confluence/pages/viewpage.action?pageId=111254072|こちら>を参照してください。")
-        message.send("\n".join(usages))
+        slack.send("\n".join(usages))

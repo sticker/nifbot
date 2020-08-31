@@ -1,8 +1,7 @@
 from datetime import datetime
 from lib import get_logger
-from slackbot.dispatcher import Message
 from lib.aws.dynamodb import Dynamodb
-
+from lib.slack.slack import Slack
 
 class CompanyUserTag:
     def __init__(self):
@@ -10,9 +9,9 @@ class CompanyUserTag:
         self.dynamodb = Dynamodb()
         self.tablename = 'company_user_tag'
 
-    def tag(self, message: Message, uids: list, tags: list):
+    def tag(self, slack: Slack, uids: list, tags: list):
         # リクエストしたユーザ名
-        slack_name = message.channel._client.users[message.body['user']][u'name']
+        slack_name = slack.event_user_name
 
         for uid in uids:
             for tag in tags:
@@ -20,10 +19,10 @@ class CompanyUserTag:
                     message_text = f"{uid}に `{tag}` タグを登録しました！"
                 else:
                     message_text = f"{uid}に `{tag}` タグの登録に失敗しました...すいません！"
-                message.reply(message_text)
+                slack.reply(message_text)
         return
 
-    def tag_list(self, message: Message, uids: list):
+    def tag_list(self, slack: Slack, uids: list):
         message_texts = list()
         for uid in uids:
             tags = self.get_tags_by_uid(uid)
@@ -39,11 +38,11 @@ class CompanyUserTag:
             message_texts.append(' '.join(texts))
 
         message_text = '\n'.join(message_texts)
-        message.reply(message_text)
+        slack.reply(message_text)
         self.logger.info(message_text)
         return
 
-    def uid_list(self, message: Message, tags: list):
+    def uid_list(self, slack: Slack, tags: list):
         message_texts = list()
         for tag in tags:
             uids = self.get_uids_by_tag(tag)
@@ -68,18 +67,18 @@ class CompanyUserTag:
                 message_texts.append(' '.join(texts))
 
         message_text = '\n'.join(message_texts)
-        message.reply(message_text)
+        slack.reply(message_text)
         self.logger.info(message_text)
         return
 
-    def tag_rm(self, message: Message, uids: list, tags: list):
+    def tag_rm(self, slack: Slack, uids: list, tags: list):
         for uid in uids:
             for tag in tags:
                 if self.remove_tag(uid, tag):
                     message_text = f"[{uid}]から `{tag}` のタグを削除しました！"
                 else:
                     message_text = f"[{uid}]から `{tag}` のタグ削除に失敗しました...すいません！"
-                message.reply(message_text)
+                slack.reply(message_text)
         return
 
     def save_tag(self, uid: str, tag: str, owner: str):
