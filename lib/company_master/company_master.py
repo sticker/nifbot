@@ -10,13 +10,13 @@ class CompanyMaster:
         self.s3 = S3()
         self.max_count = 110
 
-    def search_master(self, message, master_name_text, filename, search_words, search_columns, search_column_regex, get_columns):
+    def search_master(self, slack, master_name_text, filename, search_words, search_columns, search_column_regex, get_columns):
         self.logger.info(f"{master_name_text}検索を開始")
 
         # 検索対象カラムの形式のみのリストに変換
         search_words = [s for s in search_words if re.match(search_column_regex, s)]
 
-        hit_count, hit = self.search_master_ex(message, master_name_text, filename, search_columns, search_words, get_columns)
+        hit_count, hit = self.search_master_ex(master_name_text, filename, search_columns, search_words, get_columns)
         # ヒット件数が0件ならそのまま0を返す
         if hit_count == 0:
             return hit_count
@@ -26,13 +26,13 @@ class CompanyMaster:
         hit = hit[hit[:, 0].argsort(), :]
 
         message_texts = self.get_message_text(master_name_text, hit_count, hit)
-        message.reply("\n".join(message_texts))
+        slack.reply("\n".join(message_texts))
         self.logger.info("\n".join(message_texts))
 
         # ヒット件数を返す
         return hit_count
 
-    def search_master_ex(self, message, master_name_text, filename, search_columns, search_words, get_columns):
+    def search_master_ex(self, master_name_text, filename, search_columns, search_words, get_columns):
 
         df = self.get_master_df(filename=filename)
         # 検索結果のndarrayを入れる変数
