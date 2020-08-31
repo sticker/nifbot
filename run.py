@@ -101,7 +101,7 @@ def mention_process(event_data):
 
 def main():
     # flask app起動
-    app.run(port=8000)
+    app.run(host='0.0.0.0', port=8000)
 
 
 if __name__ == "__main__":
