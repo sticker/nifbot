@@ -15,9 +15,15 @@ SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 app = Flask(__name__)
 
 
+# Health check
+@app.route('/', methods=['GET', 'POST'])
+def hello():
+    return "ok"
+
+
 # interactive message
 @app.route('/slack/interactive', methods=['GET', 'POST'])
-def hello():
+def interactive_handler():
     logging.debug(request.form["payload"])
     form_json = json.loads(request.form["payload"])
 
