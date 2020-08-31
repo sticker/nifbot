@@ -1,5 +1,5 @@
 import re
-from lib.nifbot.company_master import CompanyMaster
+from lib.company_master.company_master import CompanyMaster
 
 
 class CompanyGroup(CompanyMaster):
@@ -9,12 +9,12 @@ class CompanyGroup(CompanyMaster):
         self.filename = 'format/group/nifty_general_org.csv'
         self.get_columns = ['group_id', 'group_name']
 
-    def search_by_code(self, message, words):
+    def search_by_code(self, slack, words):
         group_id_regex = '[a-zA-Z][0-9]{3}'
         group_ids = [s for s in words if re.match(group_id_regex, s)]
         if len(group_ids) > 0:
             # 組織マスタを検索
-            hit_count = super().search_master(message, master_name_text=self.master_name_text,
+            hit_count = super().search_master(slack, master_name_text=self.master_name_text,
                                               filename=self.filename,
                                               search_words=group_ids,
                                               search_columns=['group_id'],
@@ -24,8 +24,8 @@ class CompanyGroup(CompanyMaster):
 
         return 0
 
-    def search_by_name(self, message, words):
-        hit_count = super().search_master(message, master_name_text=self.master_name_text,
+    def search_by_name(self, slack, words):
+        hit_count = super().search_master(slack, master_name_text=self.master_name_text,
                                           filename=self.filename,
                                           search_words=words,
                                           search_columns=['group_name'],

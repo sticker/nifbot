@@ -2,7 +2,7 @@ from datetime import datetime
 from lib import get_logger
 from lib.aws.dynamodb import Dynamodb
 from lib.akashi.stamps import Stamps
-from lib.nifbot.help import Help
+from lib.help.help import Help
 
 
 class Akashi:
@@ -33,62 +33,62 @@ class Akashi:
 
         return True
 
-    def token(self, message, akashi_token):
+    def token(self, slack, akashi_token):
         # リクエストしたユーザ名
-        slack_name = message.channel._client.users[message.body['user']][u'name']
+        slack_name = slack.event_user_name
 
         if self.save_akashi_token(slack_name, akashi_token):
-            message.reply("AKASHIのトークンを登録しました！")
+            slack.reply("AKASHIのトークンを登録しました！")
         else:
-            message.reply("AKASHIのトークン登録に失敗しました...すいません！")
+            slack.reply("AKASHIのトークン登録に失敗しました...すいません！")
 
         return
 
-    def begin(self, message):
+    def begin(self, slack):
 
         # ￿打刻機能は一旦無効化しておきます。使える日が来たらオープンしましょう。
-        message.reply("おはようございます！AKASHIの画面で打刻してくださいね:smiling_imp:")
+        slack.reply("おはようございます！AKASHIの画面で打刻してくださいね:smiling_imp:")
         return
 
         # リクエストしたユーザ名
-        slack_name = message.channel._client.users[message.body['user']][u'name']
+        slack_name = slack.event_user_name
         akashi_token = self.get_akashi_token(slack_name)
 
         if akashi_token == '':
-            message.reply("AKASHIのトークンを登録してください")
-            self.help.akashi_token(message)
+            slack.reply("AKASHIのトークンを登録してください")
+            self.help.akashi_token(slack)
             return
 
         response_body = self.stamps.begin(akashi_token)
 
         if response_body["success"] == True:
-            message.reply(f"出勤打刻しました！今日もがんばろー:smile: `{response_body['response']['stampedAt']}`")
+            slack.reply(f"出勤打刻しました！今日もがんばろー:smile: `{response_body['response']['stampedAt']}`")
         else:
-            message.reply("出勤打刻に失敗しました...")
+            slack.reply("出勤打刻に失敗しました...")
             self.logger.warning(f"出勤打刻に失敗しました slack_name: {slack_name}")
             self.logger.warning(response_body)
 
-    def finish(self, message):
+    def finish(self, slack):
 
         # ￿打刻機能は一旦無効化しておきます。使える日が来たらオープンしましょう。
-        message.reply("おつかれさまでした！AKASHIの画面で打刻してくださいね:smiling_imp:")
+        slack.reply("おつかれさまでした！AKASHIの画面で打刻してくださいね:smiling_imp:")
         return
 
         # リクエストしたユーザ名
-        slack_name = message.channel._client.users[message.body['user']][u'name']
+        slack_name = slack.event_user_name
         akashi_token = self.get_akashi_token(slack_name)
 
         if akashi_token == '':
-            message.reply("AKASHIのトークンを登録してください")
-            self.help.akashi_token(message)
+            slack.reply("AKASHIのトークンを登録してください")
+            self.help.akashi_token(slack)
             # TODO: トークン登録IFを作成する
             return
 
         response_body = self.stamps.finish(akashi_token)
 
         if response_body["success"] == True:
-            message.reply(f"退勤打刻しました！おつかれさまでした:blush: `{response_body['response']['stampedAt']}`")
+            slack.reply(f"退勤打刻しました！おつかれさまでした:blush: `{response_body['response']['stampedAt']}`")
         else:
-            message.reply("退勤打刻に失敗しました...")
+            slack.reply("退勤打刻に失敗しました...")
             self.logger.warning(f"退勤打刻に失敗しました slack_name: {slack_name}")
             self.logger.warning(response_body)
