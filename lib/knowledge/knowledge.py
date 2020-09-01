@@ -23,8 +23,8 @@ class Knowledge:
 
     def ask(self, slack, words):
         # return self.ask_kendra(slack, words)
-        return self.ask_watson(slack, words)
-        # return self.interactive_test(slack)
+        # return self.ask_watson(slack, words)
+        return self.interactive_test(slack)
 
     def ask_kendra(self, slack, words):
         query = ' '.join(words)
@@ -68,66 +68,36 @@ class Knowledge:
 
     def interactive_test(self, slack):
         attachments = [{
-            "blocks": [
+            "title": "ナレッジ検索機能、ほしい？",
+            "callback_id": "nifbot_knowledge_like",
+            "actions": [
                 {
-                    "type": "section",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Confluenceにはこう書かれてます！",
-                        "emoji": True
-                    }
+                    "id": "1",
+                    "name": "ok",
+                    "text": "ほしい！",
+                    "type": "button",
+                    "value": "1",
+                    "style": "primary"
                 },
                 {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*ページタイトル1*```見つかったテキスト本文1```"
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "このページへ",
-                            "emoji": True
-                        },
-                        "value": "page_url"
-                    }
+                    "id": "2",
+                    "name": "ng",
+                    "text": "いらない！",
+                    "type": "button",
+                    "value": "-1",
+                    "style": "danger"
                 },
                 {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*ページタイトル2*```見つかったテキスト本文2```"
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "このページへ",
-                            "emoji": True
-                        },
-                        "value": "page_url"
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*ページタイトル3*```見つかったテキスト本文3```"
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "このページへ",
-                            "emoji": True
-                        },
-                        "value": "page_url"
-                    }
+                    "id": "3",
+                    "name": "none",
+                    "text": "どっちでもいい",
+                    "type": "button",
+                    "value": "0",
+                    "style": "default"
                 }
             ]
         }]
 
-        text = 'インタラクティブメッセージのテストです！'
-        res = slack.send(text, attachments=attachments)
+        text = 'ニフティのナレッジを勉強してるよ。もうすぐ応答できるようになるから待っててね！'
+        res = slack.reply(text, attachments=attachments)
         return True
