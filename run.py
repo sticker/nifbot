@@ -1,7 +1,7 @@
 import os
 import logging
 import json
-from flask import Flask, request
+from flask import Flask, request, make_response
 from slackeventsapi import SlackEventAdapter
 from lib.slack.slack import Slack
 from lib.nifbot.mention_handler import MentionHandler
@@ -32,24 +32,24 @@ def interactive_handler():
     text = f"{page_url} がクリックされました！"
     # slack_client.chat_postMessage(channel=channel, text=text)
     logging.debug(text)
-    return "ok"
+    return make_response("", 200)
 
 
 slack_events_adapter = SlackEventAdapter(SLACK_SIGNING_SECRET, "/slack/events", app)
 
 
 @slack_events_adapter.on("message")
-def handle_message(event_data):
+def handle_message(event_data, request):
     event = event_data["event"]
     if "im" == event.get("channel_type"):
-        mention_process(event_data)
-    return "ok"
+        mention_process(event_data, request)
+    return make_response("", 200)
 
 
 @slack_events_adapter.on("app_mention")
-def handle_app_mention(event_data):
-    mention_process(event_data)
-    return "ok"
+def handle_app_mention(event_data, request):
+    mention_process(event_data, request)
+    return make_response("", 200)
 
 
 # Create an event listener for "reaction_added" events and print the emoji name
@@ -60,7 +60,7 @@ def reaction_added(event_data):
 
     if event["user"] == "U01901QJX47":
         logging.debug("botのメッセージのため無視")
-        return "ok"
+        return make_response("", 200)
 
     channel = event["item"]["channel"]
     emoji = event_data["event"]["reaction"]
@@ -69,7 +69,7 @@ def reaction_added(event_data):
     # slack_client.chat_postMessage(channel=channel, text=text)
     # ts = message["item"]["ts"]
     # slack_client.reactions_add(name="robot_face", channel=channel, timestamp=ts)
-    return "ok"
+    return make_response("", 200)
 
 
 # Error events
@@ -78,13 +78,17 @@ def error_handler(err):
     logging.error("ERROR: " + str(err))
 
 
-def mention_process(event_data):
+def mention_process(event_data, request):
+    if request.headers.get('X-Slack-Retry-Num') is not None:
+        print(f"リトライのリクエストのため無視します X-Slack-Retry-Num={request.headers.get('X-Slack-Retry-Num')}")
+        return False
+
     logging.debug(event_data)
     event = event_data["event"]
 
     if event.get("bot_profile") is not None:
         logging.debug("botのメッセージのため無視")
-        return
+        return False
 
     event_type = event.get("type")
     event_user = event.get("user")
@@ -96,7 +100,7 @@ def mention_process(event_data):
     slack = Slack(event_type, event_user, event_text, event_ts, event_channel, event_event_ts)
 
     MentionHandler().mention_handler(slack)
-    return
+    return True
 
 
 def main():
