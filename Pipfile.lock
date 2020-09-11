@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f091ba620f25bdda47b9d3a117ff67e07e7a1733299eea0b7aafa11008c91c7c"
+            "sha256": "ddff7946a79ac6238b65512aa4a32f3ddbeed0d7c7040819abb7740582642cd0"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -105,6 +105,25 @@
             ],
             "version": "==1.5.1"
         },
+        "ibm-cos-sdk": {
+            "hashes": [
+                "sha256:998d8538e508c8ae50ea1ac52f4ed3ee8c62150e0e70365b96e4712199156108"
+            ],
+            "index": "pypi",
+            "version": "==2.7.0"
+        },
+        "ibm-cos-sdk-core": {
+            "hashes": [
+                "sha256:9cf2dcd5514b45a84bdf6bfcb8c9bf5d4ce9808f8cf8539ffe9ee863ccf667f9"
+            ],
+            "version": "==2.7.0"
+        },
+        "ibm-cos-sdk-s3transfer": {
+            "hashes": [
+                "sha256:31fe288d641fcbf90e98a4741efbce93096fbf86096e9e2603fcc4d520868e97"
+            ],
+            "version": "==2.7.0"
+        },
         "ibm-watson": {
             "hashes": [
                 "sha256:f6f46b67ffc41080e0a8ef24569bf435a435c26fd54b23e49a81f1a68517cd46"
@@ -118,13 +137,6 @@
                 "sha256:b97d804b1e9b523befed77c48dacec60e6dcb0b5391d57af6a65a312a90648c0"
             ],
             "version": "==2.10"
-        },
-        "idna-ssl": {
-            "hashes": [
-                "sha256:a933e3bb13da54383f9e8f35dc4f9cb9eb9b3b78c6b36f311254d6d0d92c6c7c"
-            ],
-            "markers": "python_version < '3.7'",
-            "version": "==1.1.0"
         },
         "itsdangerous": {
             "hashes": [

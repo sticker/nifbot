@@ -7,6 +7,7 @@ from lib.slack.slack import Slack
 from lib.nifbot.mention_handler import MentionHandler
 from lib.nifbot.reaction_handler import ReactionHandler
 from lib.nifbot.interactive_handler import InteractiveHandler
+from lib.nifbot.block_actions_handler import BlockActionsHandler
 
 
 logging.basicConfig(level=logging.DEBUG,
@@ -22,6 +23,13 @@ app = Flask(__name__)
 def hello():
     return "ok"
 
+# for watson assistant webhook
+@app.route('/watson', methods=['GET', 'POST'])
+def watson():
+    ret = {
+        'return': 'ok'
+    }
+    return make_response(ret, 200)
 
 # interactive message
 @app.route('/slack/interactive', methods=['GET', 'POST'])
@@ -30,22 +38,43 @@ def interactive_handler():
     logging.debug(payload)
     type = payload["type"]
 
-    if type != "interactive_message":
-        return make_response("", 200)
+    if type == "interactive_message":
+        handler = InteractiveHandler()
+        callback_id = payload["callback_id"]
 
-    handler = InteractiveHandler()
-    callback_id = payload["callback_id"]
+        # callback_idごとに処理を分岐し、インタラクティブハンドラに委譲する
+        if callback_id == "nifbot_knowledge_like":
+            user = payload["user"]["id"]
+            channel = payload["channel"]["id"]
+            action_ts = payload["action_ts"]
+            message_ts = payload["message_ts"]
+            action = payload["actions"][0]
 
-    # callback_idごとに処理を分岐し、インタラクティブハンドラに委譲する
-    if callback_id == "nifbot_knowledge_like":
-        user = payload["user"]["id"]
-        channel = payload["channel"]["id"]
-        action_ts = payload["action_ts"]
-        message_ts = payload["message_ts"]
-        action = payload["actions"][0]
+            slack = Slack(type, user, None, action_ts, channel, message_ts)
+            handler.nifbot_knowledge_like(slack, action)
 
-        slack = Slack(type, user, None, action_ts, channel, message_ts)
-        handler.nifbot_knowledge_like(slack, action)
+    if type == "block_actions":
+        handler = BlockActionsHandler()
+        action_id = payload["actions"][0]["action_id"]
+        # action_idごとに処理を分岐し、BlockActionsHandlerに委譲する
+        if action_id == "nifbot_knowledge_feedback_ok":
+            user = payload["user"]["id"]
+            channel = payload["channel"]["id"]
+            message_ts = payload["container"]["message_ts"]
+            action = payload["actions"][0]
+            action_ts = action["action_ts"]
+
+            slack = Slack(type, user, None, action_ts, channel, message_ts)
+            handler.nifbot_knowledge_feedback_ok(slack, action)
+        elif action_id == "nifbot_knowledge_feedback_ng":
+            user = payload["user"]["id"]
+            channel = payload["channel"]["id"]
+            message_ts = payload["container"]["message_ts"]
+            action = payload["actions"][0]
+            action_ts = action["action_ts"]
+
+            slack = Slack(type, user, None, action_ts, channel, message_ts)
+            handler.nifbot_knowledge_feedback_ng(slack, action)
 
     return make_response("", 200)
 
