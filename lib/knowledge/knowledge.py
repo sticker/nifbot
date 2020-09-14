@@ -41,12 +41,10 @@ class Knowledge:
         try:
             blocks, attachments = self.watson_discovery.query(query)
             if blocks is not None:
-                self.logger.info(f"blocks={blocks}")
-                self.logger.info(f"attachments={attachments}")
-                slack.reply("", blocks=blocks)
+                slack.reply("", blocks=blocks, thread_ts=slack.event_ts, reply_broadcast=True)
                 # attachmentsは一つずつ分けて投稿する（それぞれでリアクション絵文字つけられるように）
                 for attachment in attachments:
-                    slack.send("", attachments=[attachment])
+                    slack.send("", attachments=[attachment], thread_ts=slack.event_ts)
                 return True
             else:
                 return False
