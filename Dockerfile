@@ -7,6 +7,9 @@ ENV TZ=Asia/Tokyo
 # pipenvをインストール
 RUN pip install pipenv
 
+# gitをインストール
+RUN apt-get update && apt-get install -y git
+
 # ソースを配置
 USER root
 RUN mkdir -p /service/nifbot

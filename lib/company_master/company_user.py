@@ -1,8 +1,8 @@
 import re
 import pandas as pd
 import numpy as np
-from lib.nifbot.company_master import CompanyMaster
-from lib.nifbot.company_user_tag import CompanyUserTag
+from lib.company_master.company_master import CompanyMaster
+from lib.company_master.company_user_tag import CompanyUserTag
 
 
 class CompanyUser(CompanyMaster):
@@ -10,10 +10,10 @@ class CompanyUser(CompanyMaster):
         super().__init__()
         self.company_user_tag = CompanyUserTag()
 
-    def search(self, message, words):
+    def search(self, slack, words):
         get_columns = ['uid', 'full_name_kanji', 'mail', 'telephone_number', 'group_id', 'group_name', 'position_name']
         search_columns = get_columns
-        hit_count = self.search_master(message, master_name_text='社員マスタ',
+        hit_count = self.search_master(slack, master_name_text='社員マスタ',
                                        filename=None,
                                        search_words=words,
                                        search_columns=search_columns,
@@ -21,13 +21,13 @@ class CompanyUser(CompanyMaster):
                                        get_columns=get_columns)
         return hit_count
 
-    def search_master(self, message, master_name_text, filename, search_words, search_columns, search_column_regex, get_columns):
+    def search_master(self, slack, master_name_text, filename, search_words, search_columns, search_column_regex, get_columns):
         self.logger.info(f"{master_name_text}検索を開始")
 
         # 検索対象カラムの形式のみのリストに変換
         search_words = [s for s in search_words if re.match(search_column_regex, s)]
         # マスタ検索
-        hit_count, hit = self.search_master_ex(message, master_name_text, filename, search_columns, search_words, get_columns)
+        hit_count, hit = self.search_master_ex(master_name_text, filename, search_columns, search_words, get_columns)
 
         # タグあいまい検索
         uids = self.company_user_tag.get_uids_by_tags(search_words)
@@ -38,7 +38,7 @@ class CompanyUser(CompanyMaster):
         # タグ検索でヒットしたら、そのIDでマスタ検索して結果に追加する
         if len(tag_uids) > 0:
             # マスタ検索
-            hit_count_tag, hit_tag = self.search_master_ex(message, master_name_text, filename, ['uid'], tag_uids, get_columns)
+            hit_count_tag, hit_tag = self.search_master_ex(master_name_text, filename, ['uid'], tag_uids, get_columns)
             hit_count += hit_count_tag
             if len(hit) == 0:
                 hit = hit_tag
@@ -54,7 +54,7 @@ class CompanyUser(CompanyMaster):
         hit = hit[hit[:, 0].argsort(), :]
 
         message_texts = self.get_message_text(master_name_text, hit_count, hit)
-        message.reply("\n".join(message_texts))
+        slack.reply("\n".join(message_texts))
         self.logger.info("\n".join(message_texts))
 
         # ヒット件数を返す
