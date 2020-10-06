@@ -1,65 +1,28 @@
 from lib import get_logger
-from lib.aws.kendra import Kendra
+# from lib.aws.kendra import Kendra
 from lib.knowledge.watson_discovery import WatsonDiscovery
-# from lib.knowledge.watson_assistant import WatsonAssistant
+from lib.knowledge.watson_assistant import WatsonAssistant
 
 
 class Knowledge:
     def __init__(self):
         self.logger = get_logger(__name__)
-        self.kendra = Kendra()
+        # self.kendra = Kendra()
         self.watson_discovery = WatsonDiscovery()
-        # self.watson_assistant = WatsonAssistant()
+        self.watson_assistant = WatsonAssistant()
 
     def ask(self, slack, words):
         # return self.ask_kendra(slack, words)
-        return self.ask_watson_discovery(slack, words)
-        # return self.ask_watson_assistant(slack, words)
+        return self.ask_watson(slack, words)
         # return self.interactive_test(slack)
 
-    def ask_kendra(self, slack, words):
-        query = ' '.join(words)
-        res = ''
-        try:
-            res = self.kendra.search(query)
-            if res != '':
-
-                message_text = res + " :nifbot:"
-                slack.reply(message_text)
-                self.logger.info(message_text)
-                return True
-            else:
-                return False
-        except:
-            self.logger.warning("Kendraで例外が発生しました")
-            import traceback
-            traceback.print_exc()
-            return False
-
-    def ask_watson_discovery(self, slack, words):
-        query = ' '.join(words)
-        try:
-            blocks, attachments = self.watson_discovery.query(query)
-            if blocks is not None:
-                slack.reply("", blocks=blocks, thread_ts=slack.event_ts, reply_broadcast=True)
-                # attachmentsは一つずつ分けて投稿する（それぞれでリアクション絵文字つけられるように）
-                for attachment in attachments:
-                    slack.send("", attachments=[attachment], thread_ts=slack.event_ts)
-                return True
-            else:
-                return False
-        except:
-            self.logger.warning("Watson Discoveryで例外が発生しました")
-            import traceback
-            traceback.print_exc()
-            return False
-
-    # def ask_watson_assistant(self, slack, words):
+    # def ask_kendra(self, slack, words):
     #     query = ' '.join(words)
     #     res = ''
     #     try:
-    #         res = self.watson_assistant.message_stateless(query)
+    #         res = self.kendra.search(query)
     #         if res != '':
+    #
     #             message_text = res + " :nifbot:"
     #             slack.reply(message_text)
     #             self.logger.info(message_text)
@@ -67,10 +30,37 @@ class Knowledge:
     #         else:
     #             return False
     #     except:
-    #         self.logger.warning("Watson Assistantで例外が発生しました")
+    #         self.logger.warning("Kendraで例外が発生しました")
     #         import traceback
     #         traceback.print_exc()
     #         return False
+
+    def ask_watson(self, slack, words):
+        query = ' '.join(words)
+        try:
+            # まずAssistantに聞く
+            res = self.watson_assistant.message_stateless(query)
+            if res != 'NG':
+                message_text = res + " :nifbot:"
+                slack.reply(message_text)
+                self.logger.info(message_text)
+                return True
+            else:
+                # AssistantからNGが返った場合は、Discoveryを呼ぶ
+                blocks, attachments = self.watson_discovery.query(query)
+                if blocks is not None:
+                    slack.reply("", blocks=blocks, thread_ts=slack.event_ts, reply_broadcast=True)
+                    # attachmentsは一つずつ分けて投稿する（それぞれでリアクション絵文字つけられるように）
+                    for attachment in attachments:
+                        slack.send("", attachments=[attachment], thread_ts=slack.event_ts)
+                    return True
+                else:
+                    return False
+        except:
+            self.logger.warning("Watsonで例外が発生しました")
+            import traceback
+            traceback.print_exc()
+            return False
 
     def interactive_test(self, slack):
         attachments = [{

@@ -9,99 +9,90 @@ class WatsonDiscovery:
         self.logger = get_logger(__name__)
 
     def query(self, query):
-        try:
-            res = config.watson_discovery.query(environment_id=config.environment_id,
-                                                collection_id=config.collection_id,
-                                                natural_language_query=query,
-                                                passages=True,
-                                                highlight=True,
-                                                count=config.results_count,
-                                                passages_count=config.passages_count,
-                                                passages_characters=config.passages_characters)
+        res = config.watson_discovery.query(environment_id=config.environment_id,
+                                            collection_id=config.collection_id,
+                                            natural_language_query=query,
+                                            passages=True,
+                                            highlight=True,
+                                            count=config.results_count,
+                                            passages_count=config.passages_count,
+                                            passages_characters=config.passages_characters)
+        # 返答するblocks
+        blocks = list()
 
-            # 返答するblocks
-            blocks = list()
+        # クエリが失敗した場合は処理終了
+        if res.get_status_code() != 200:
+            return None, None
 
-            # クエリが失敗した場合は処理終了
-            if res.get_status_code() != 200:
-                blocks.append(self.make_error_section())
-                return blocks, None
-
-            # 信頼度の高いpassageがヒットしたかどうか
-            passage_hit = False
-
-            # まずpassageのスコアがしきい値以上なら passage_text を返す
-            result_all = res.get_result()
-            passage = result_all['passages'][0]
-            passage_score = passage['passage_score']
-            if passage_score >= config.passage_score_threshold:
-                passage_text = passage['passage_text']
-                field = passage['field']
-                # htmlならタグを削除する
-                if field == 'html':
-                    passage_text = self.delete_html_tag(passage_text)
-
-                hit_message = f"答えが見つかったよ！\n```{passage_text}```\n"
-                blocks.append({
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": hit_message
-                    }
-                })
-                passage_hit = True
-
-            # resultsを取得
-            results = result_all['results']
-            # resultsが無ければ処理終了
-            if len(results) == 0:
-                return blocks, None
-            # resultsがあれば結果をフィードバックしてもらう
-            feedback_message = "関係ありそうなページが見つかったよ。フィードバックして教えてね。"
-            if passage_hit:
-                feedback_message = "他にも" + feedback_message
+        # 信頼度の高いpassageがヒットしたかどうか
+        passage_hit = False
+        # まずpassageのスコアがしきい値以上なら passage_text を返す
+        result_all = res.get_result()
+        passage = result_all['passages'][0]
+        passage_score = passage['passage_score']
+        if passage_score >= config.passage_score_threshold:
+            passage_text = passage['passage_text']
+            field = passage['field']
+            # htmlならタグを削除する
+            if field == 'html':
+                passage_text = self.delete_html_tag(passage_text)
+            hit_message = f"答えが見つかったよ！\n```{passage_text}```\n"
             blocks.append({
                 "type": "section",
                 "text": {
-                    "type": "plain_text",
-                    "text": feedback_message,
-                    "emoji": True
+                    "type": "mrkdwn",
+                    "text": hit_message
                 }
             })
+            passage_hit = True
 
-            # フィードバック用にクエリを登録し、query_idを取得しておく
-            query_id = self.add_training_data(query)
+        # resultsを取得
+        results = result_all['results']
 
-            attachments = list()
-            for result in results:
-                document_id = result['id']
-                page_url = result.get('page_url')
-                page_title = result.get('title')
-                if page_url is None:
-                    # COSオブジェクトのメタデータからページURLを取得
-                    bucket_name = result['metadata']['source']['Name']
-                    item_name = result['metadata']['source']['Key']
-                    file = config.cos.Object(bucket_name, item_name).get()
-                    page_url = file['Metadata'].get('page_url')
-                    # item_nameの先頭にConfluenceのスペースキーがあるので取り除く
-                    page_title = '/'.join(item_name.split('/')[1:])
-                if result['highlight'].get('text') is not None:
-                    highlight = result['highlight']['text'][0]
-                elif result['highlight'].get('html') is not None:
-                    highlight = result['highlight']['html'][0]
-                else:
-                    highlight = ""
-                # タグを削除
-                highlight_text = self.delete_html_tag(highlight)
-                # blocksに「関係ありそうなページ」部分を追加
-                attachments.append({"blocks": self.make_results_section(page_title, page_url, highlight_text, query, query_id, document_id)})
+        # resultsが無ければ処理終了
+        if len(results) == 0:
+            return blocks, None
 
-            return blocks, attachments
-        except Exception:
-            self.logger.warning("Watson Discoveryで例外が発生しました")
-            import traceback
-            traceback.print_exc()
-            return [self.make_error_section()], None
+        # resultsがあれば結果をフィードバックしてもらう
+        feedback_message = "関係ありそうなページが見つかったよ。フィードバックして教えてね。"
+        if passage_hit:
+            feedback_message = "他にも" + feedback_message
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "plain_text",
+                "text": feedback_message,
+                "emoji": True
+            }
+        })
+
+        # フィードバック用にクエリを登録し、query_idを取得しておく
+        query_id = self.add_training_data(query)
+        attachments = list()
+        for result in results:
+            document_id = result['id']
+            page_url = result.get('page_url')
+            page_title = result.get('title')
+            if page_url is None:
+                # COSオブジェクトのメタデータからページURLを取得
+                bucket_name = result['metadata']['source']['Name']
+                item_name = result['metadata']['source']['Key']
+                file = config.cos.Object(bucket_name, item_name).get()
+                page_url = file['Metadata'].get('page_url')
+                # item_nameの先頭にConfluenceのスペースキーがあるので取り除く
+                page_title = '/'.join(item_name.split('/')[1:])
+            if result['highlight'].get('text') is not None:
+                highlight = result['highlight']['text'][0]
+            elif result['highlight'].get('html') is not None:
+                highlight = result['highlight']['html'][0]
+            else:
+                highlight = ""
+            # タグを削除
+            highlight_text = self.delete_html_tag(highlight)
+            # blocksに「関係ありそうなページ」部分を追加
+            attachments.append({"blocks": self.make_results_section(page_title, page_url, highlight_text, query, query_id, document_id)})
+
+        return blocks, attachments
 
     def delete_html_tag(self, str):
         """
@@ -111,21 +102,6 @@ class WatsonDiscovery:
         """
         del_html_tag = re.compile(r"<[^>]*?>")
         return del_html_tag.sub("", str)
-
-    def make_error_section(self):
-        """
-        エラー発生時のメッセージセクションを返す
-        :return: dict エラーメッセージのセクション
-        """
-        section = {
-            "type": "section",
-            "text": {
-                "type": "plain_text",
-                "text": "すいません、調子が悪いみたいです。。:scream:",
-                "emoji": True
-            }
-        }
-        return section
 
     def make_results_section(self, page_title: str, page_url: str, highlight_text: str, query: str, query_id: str, document_id: str):
         """
