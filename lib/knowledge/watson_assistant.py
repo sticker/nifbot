@@ -16,4 +16,9 @@ class WatsonAssistant:
             }).get_result()
 
         self.logger.debug(json.dumps(response, indent=2))
-        return response['output']['generic'][0]['text']
+        generic = response['output']['generic']
+        if generic is not None and len(generic) >= 1:
+            text = generic[0].get('text', 'NG')
+            return text
+        else:
+            return "NG"
