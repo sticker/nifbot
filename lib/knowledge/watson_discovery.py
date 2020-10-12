@@ -36,7 +36,7 @@ class WatsonDiscovery:
             # htmlならタグを削除する
             if field == 'html':
                 passage_text = self.delete_html_tag(passage_text)
-            hit_message = f"答えが見つかったよ！\n```{passage_text}```\n"
+            hit_message = f"こんな記載が見つかったよ！\n```{passage_text}```\n"
             blocks.append({
                 "type": "section",
                 "text": {
