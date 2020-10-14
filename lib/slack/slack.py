@@ -17,12 +17,13 @@ class Slack:
         self.event_event_ts = event_event_ts
         self.event_reaction = event_reaction
 
-    def send(self, text, attachments=None, thread_ts=None):
-        self.client.chat_postMessage(channel=self.event_channel, text=text, attachments=attachments, thread_ts=thread_ts)
+    def send(self, text, blocks=None, attachments=None, thread_ts=None, reply_broadcast=None):
+        self.client.chat_postMessage(channel=self.event_channel, text=text, blocks=blocks, attachments=attachments,
+                                     thread_ts=thread_ts, reply_broadcast=reply_broadcast)
 
-    def reply(self, text, attachments=None, thread_ts=None):
+    def reply(self, text, blocks=None, attachments=None, thread_ts=None, reply_broadcast=None):
         text = f'<@{self.event_user}> ' + text
-        self.send(text, attachments=attachments, thread_ts=thread_ts)
+        self.send(text, blocks=blocks, attachments=attachments, thread_ts=thread_ts, reply_broadcast=reply_broadcast)
 
     def reactions_add(self, name, channel, timestamp):
         self.client.reactions_add(name=name, channel=channel, timestamp=timestamp)

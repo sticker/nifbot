@@ -7,9 +7,10 @@ name = "pypi"
 "boto3" = "==1.10.16"
 pandas = "==1.1.1"
 flask = "==1.1.2"
-slackeventsapi = {git = "https://github.com/sticker/python-slack-events-api.git", editable = true, ref = "feature/event-request"}
+slackeventsapi = "==2.2.1"
 slackclient = "==2.8.0"
 ibm-watson = "==4.5.0"
+ibm-cos-sdk = "==2.7.0"
 
 [dev-packages]
 pytest = "*"
