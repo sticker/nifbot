@@ -25,8 +25,8 @@ class CompanyMaster:
         hit = np.array(list(map(list, set(map(tuple, hit)))))
         hit = hit[hit[:, 0].argsort(), :]
 
-        message_texts = self.get_message_text(master_name_text, hit_count, hit)
-        slack.reply("\n".join(message_texts))
+        message_texts, blocks = self.get_message_text(master_name_text, hit_count, hit)
+        slack.reply("\n".join(message_texts), blocks=blocks)
         self.logger.info("\n".join(message_texts))
 
         # ヒット件数を返す
@@ -84,12 +84,47 @@ class CompanyMaster:
         else:
             message_texts.append(f"{master_name_text}を検索しました！")
 
-        return self.add_message_text_record(message_texts, hit)
+        return self.add_message_text_record(master_name_text, message_texts, hit)
 
-    def add_message_text_record(self, message_texts, hit):
+    def add_message_text_record(self, master_name_text, message_texts, hit):
+        # 社員マスタ検索でヒット数が5件以内であれば、顔写真を表示するためblocksを返す
+        if master_name_text == '社員マスタ' and len(hit) <= 10:
+            blocks = list()
+            for i in range(len(hit)):
+                section = self.generate_section_for_photo(hit[i])
+                blocks.append(section)
+            return message_texts, blocks
+        # それ以外は検索結果をテキストに追記して返す
         for i in range(len(hit)):
             target_texts = list()
             for j in range(len(hit[i])):
                 target_texts.append(str(hit[i, j]))
             message_texts.append(f"{' '.join(target_texts)}")
-        return message_texts
+        return message_texts, None
+
+    def generate_section_for_photo(self, hit_record):
+        uid = hit_record[0]
+        texts = list()
+        # ヒットしたレコードの要素を一旦listに格納
+        for j in range(len(hit_record)):
+            texts.append(str(hit_record[j]))
+
+        section = dict()
+        section["type"] = "section"
+        section["text"] = {
+            "type": "mrkdwn",
+            "text": ' '.join(texts)
+        }
+
+        # 顔写真の署名付きURLを取得
+        image_url = self.s3.generate_user_photo_presigned_url(uid)
+        self.logger.debug(image_url)
+        # 署名付きURLを取得できればセクションに追加
+        if image_url:
+            section["accessory"] = {
+                "type": "image",
+                "image_url": image_url,
+                "alt_text": uid
+            }
+
+        return section
