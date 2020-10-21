@@ -17,8 +17,9 @@ class S3(object):
             self.session = Session(region_name=self.region_name)
             self.resource = self.session.resource('s3')
             self.company_master_resource = None
+            self.company_master_client = None
 
-    def set_company_master_resource(self):
+    def get_session_assume_role(self):
         company_master_sts = self.session.client("sts")
         self.logger.info(f"セッションを取得しました。ロールArn：{company_master_sts.get_caller_identity()['Arn']}")
 
@@ -32,9 +33,15 @@ class S3(object):
             aws_session_token=cred["Credentials"]['SessionToken'],
             region_name=self.region_name
         )
+        return company_master_session
 
+    def set_company_master_resource(self):
+        company_master_session = self.get_session_assume_role()
         self.company_master_resource = company_master_session.resource('s3')
 
+    def set_company_master_client(self):
+        company_master_session = self.get_session_assume_role()
+        self.company_master_client = company_master_session.client('s3')
 
     def upload(self, resource, bucket_name: str, path_local: str, path_s3: str):
         self.logger.log(DEBUG, f"upload: bucket_name={bucket_name} path_s3={path_s3} path_local={path_local}")
@@ -66,3 +73,30 @@ class S3(object):
 
         df = pd.read_csv(local_path)
         return df
+
+    def generate_user_photo_presigned_url(self, uid: str, expires_in=300):
+        try:
+            if self.company_master_client is None:
+                self.set_company_master_client()
+
+            bucket_name = self.S3_BUCKET_COMPANY_MASTER
+            key = f"format/user_photo/{uid.upper()}.jpg"
+            # key = f"original/user_photo/{uid.upper()}.jpg"
+
+            # ファイルの存在確認　ファイルがなければClientErrorの例外発生
+            self.company_master_client.get_object(
+                Bucket=bucket_name,
+                Key=key
+            )
+            # ファイルが存在すれば署名付きURLを取得
+            presigned_url = self.company_master_client.generate_presigned_url(
+                ClientMethod='get_object',
+                Params={'Bucket': bucket_name, 'Key': key},
+                ExpiresIn=expires_in,
+                HttpMethod='GET')
+            return presigned_url
+        except:
+            self.logger.info(f"署名付きURLの取得に失敗しました uid={uid}")
+            import traceback
+            traceback.print_exc()
+            return ""

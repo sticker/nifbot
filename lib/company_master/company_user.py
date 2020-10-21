@@ -53,8 +53,8 @@ class CompanyUser(CompanyMaster):
         hit = np.array(list(map(list, set(map(tuple, hit)))))
         hit = hit[hit[:, 0].argsort(), :]
 
-        message_texts = self.get_message_text(master_name_text, hit_count, hit)
-        slack.reply("\n".join(message_texts))
+        message_texts, blocks = self.get_message_text(master_name_text, hit_count, hit)
+        slack.reply("\n".join(message_texts), blocks=blocks)
         self.logger.info("\n".join(message_texts))
 
         # ヒット件数を返す
