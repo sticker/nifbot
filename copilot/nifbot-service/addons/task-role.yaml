@@ -1,0 +1,51 @@
+Parameters:
+  App:
+    Type: String
+    Description: Your application's name.
+  Env:
+    Type: String
+    Description: The environment name your service, job, or workflow is being deployed to.
+  Name:
+    Type: String
+    Description: The name of the service, job, or workflow being deployed.
+
+Resources:
+  NifbotTaskPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+                - 'dynamodb:*'
+                - 's3:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+                - 'sts:AssumeRole'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+                - 's3:GetObject'
+            Resource:
+                - 'arn:aws:s3:::nifty-master-data-518017743882-ap-northeast-1/*'
+                - 'arn:aws:s3:::aws-athena-query-results-518017743882-ap-northeast-1/*'
+          - Effect: Allow
+            Action:
+                - 's3:ListBucket'
+                - 's3:GetBucketLocation'
+            Resource:
+                - 'arn:aws:s3:::nifty-master-data-518017743882-ap-northeast-1'
+                - 'arn:aws:s3:::aws-athena-query-results-518017743882-ap-northeast-1'
+          - Sid: EC2Actions
+            Effect: Allow
+            Action:
+              - ec2:DescribeSubnets
+            Resource: "*"
+
+Outputs:
+  # You also need to output the IAM ManagedPolicy so that Copilot can inject it to your ECS task role.
+  NifbotTaskPolicyArn:
+    Description: "The ARN of the Policy to attach to the task role."
+    Value: !Ref NifbotTaskPolicy
