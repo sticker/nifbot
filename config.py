@@ -6,7 +6,7 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 
 
 # for IBM Watson Assistant
-watson_assistant_api_key = os.getenv('WATSON_ASSISTANT_API_KEY', 'iLvZ8FU8evarny7fW5o5oVgoKzG2fpl4FxMhnvUgaz6e')
+watson_assistant_api_key = os.getenv('WATSON_ASSISTANT_API_KEY')
 watson_assistant_api_version = os.getenv('WATSON_ASSISTANT_API_VERSION', '2019-04-30')
 watson_assistant_service_url = os.getenv('WATSON_ASSISTANT_SERVICE_URL',
                                  'https://api.jp-tok.assistant.watson.cloud.ibm.com/instances/fcc084f6-7d87-4164-8cb5-5f1ee62a5aa4')
@@ -19,7 +19,7 @@ watson_assistant.set_service_url(f'{watson_assistant_service_url}')
 assistant_id = '70ffd6a5-e13a-4753-afb8-df1ebdeabdae'  # nifbot
 
 # for IBM Watson Discovery
-watson_discovery_api_key = os.getenv('WATSON_DISCOVERY_API_KEY', 'E-VpM9hs6GrfpHz6HyrH-bQ6Vl0zG9BAYYi0gPJzD9kn')
+watson_discovery_api_key = os.getenv('WATSON_DISCOVERY_API_KEY')
 watson_discovery_version = os.getenv('WATSON_DISCOVERY_API_VERSION', '2019-04-30')
 watson_discovery_service_url = os.getenv('WATSON_DISCOVERY_SERVICE_URL',
                                          'https://api.jp-tok.discovery.watson.cloud.ibm.com/instances/7d9df5db-5015-4ce0-b48d-22480586e18e')
